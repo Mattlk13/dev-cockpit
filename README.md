@@ -1,6 +1,6 @@
 # DEV-COCKPIT
 
-python tools to manage the BIBOX server, embedded in an simple Flask server. 
+Python tools to manage the BIBBOX github, available@bibbox.org
 
 ## Installation
 
