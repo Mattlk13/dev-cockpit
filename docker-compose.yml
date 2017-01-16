@@ -1,0 +1,80 @@
+version: '2'
+
+networks:
+    dev-cockpit-net:
+        driver: bridge
+
+services:
+
+    dev-cockpit:
+        build: 
+            context: ./images/flask-app
+        environment:
+            PYTHONUNBUFFERED: 'true'
+        container_name: dev-cockpit
+        command: ./app/run_web.sh
+        depends_on:
+            - dev-cockpit-datacontainer
+        networks:
+            - dev-cockpit-net
+        volumes_from: 
+            - dev-cockpit-datacontainer
+        restart: unless-stopped
+        ports:
+            - '8051:8000'
+
+    dev-cockpit-celery:
+        build:
+            context: ./images/celery-worker
+        environment:
+            PYTHONUNBUFFERED: 'true'
+        container_name: dev-cockpit-celery
+        command: /celery-tasks/run_celery.sh
+        networks:
+            - dev-cockpit-net
+        depends_on:
+            - dev-cockpit-datacontainer
+        volumes_from:
+            - dev-cockpit-datacontainer
+        restart: unless-stopped
+
+    dev-cockpit-monitor:
+        build:
+            context: ./images/celery-worker
+        environment:
+            PYTHONUNBUFFERED: 'true'
+        container_name: dev-cockpit-monitor
+        command: /celery-tasks/run_monitor.sh
+        networks:
+            - dev-cockpit-net
+        depends_on:
+            - dev-cockpit-datacontainer
+        volumes_from:
+            - dev-cockpit-datacontainer
+        restart: unless-stopped
+        ports:
+            - '5555:5555'
+
+    dev-cockpit-redis:
+        image: 'redis:3.0-alpine'
+        command: redis-server  --appendonly yes
+        container_name: dev-cockpit-redis
+        expose:
+            - 6379
+        networks:
+            - dev-cockpit-net
+        depends_on:
+            - dev-cockpit-datacontainer
+        volumes_from: 
+            - dev-cockpit-datacontainer
+        restart: unless-stopped
+        ports:
+            - '7379:6379'
+
+    dev-cockpit-datacontainer:
+        image: busybox
+        container_name:  dev-cockpit-datacontainer
+        volumes:
+            - ./app:/app
+            - ./celery-tasks:/celery-tasks
+            - ./data/redis/data:/data
