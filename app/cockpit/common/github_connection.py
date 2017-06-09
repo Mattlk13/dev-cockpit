@@ -10,7 +10,7 @@ def init(app):
 
 def _github():
     try:
-        return Github("lomadi", "loibach99")
+        return Github("lomadi", "xxxx")
     except:
         print ("ERROR cannot conenct to github")
         raise
